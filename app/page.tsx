@@ -67,8 +67,8 @@ export default function Home() {
             <div className="text-xs text-gray-500 mt-1">Players</div>
           </div>
           <div>
-            <div className="text-3xl font-black text-green-700">1</div>
-            <div className="text-xs text-gray-500 mt-1">Champion</div>
+            <div className="text-3xl font-black text-green-700">20+</div>
+            <div className="text-xs text-gray-500 mt-1">Tours</div>
           </div>
         </div>
       </div>

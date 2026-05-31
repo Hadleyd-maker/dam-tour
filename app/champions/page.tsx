@@ -1,5 +1,6 @@
 const champions = [
-  { year: 2026, winner: "TBD", nickname: "???", venue: "TBD", score: "—", note: "First ever DAM Tour champion" },
+  { year: 2026, winner: "Spencer Haydock", nickname: "Minion", venue: "TBD", score: "—" },
+  { year: 2024, winner: "Stefan Sickel", nickname: "Stretch", venue: "TBD", score: "—" },
 ];
 
 export default function ChampionsPage() {
@@ -23,13 +24,13 @@ export default function ChampionsPage() {
                 </span>
               </div>
               <div className="text-xl font-bold text-green-900">
-                {c.nickname} &mdash; <span className="font-normal text-gray-600">{c.winner}</span>
+                {c.nickname}{" "}
+                <span className="font-normal text-gray-500 text-base">{c.winner}</span>
               </div>
-              <div className="text-sm text-gray-500 mt-1">
-                {c.venue} &bull; Score: {c.score}
-              </div>
-              {c.note && (
-                <div className="text-xs text-amber-600 italic mt-1">{c.note}</div>
+              {c.venue !== "TBD" && (
+                <div className="text-sm text-gray-500 mt-1">
+                  {c.venue} &bull; Score: {c.score}
+                </div>
               )}
             </div>
           </div>
@@ -37,7 +38,7 @@ export default function ChampionsPage() {
       </div>
 
       <p className="text-center text-gray-400 text-xs mt-10">
-        More champions will be added after each annual tour.
+        More champions being added — send them through and we&apos;ll complete the history back to 2006.
       </p>
     </div>
   );
