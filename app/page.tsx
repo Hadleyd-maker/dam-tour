@@ -1,65 +1,77 @@
-import Image from "next/image";
+import Link from "next/link";
+
+const cards = [
+  {
+    href: "/players",
+    emoji: "🏌️",
+    title: "Players",
+    desc: "Meet the 15 legends of the DAM Tour",
+  },
+  {
+    href: "/champions",
+    emoji: "🏆",
+    title: "Champions",
+    desc: "Hall of fame — past tour winners",
+  },
+  {
+    href: "/tours",
+    emoji: "📅",
+    title: "Tours",
+    desc: "Upcoming events and past results",
+  },
+  {
+    href: "/gallery",
+    emoji: "📸",
+    title: "Gallery",
+    desc: "Photos from the fairways and the 19th hole",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      {/* Hero */}
+      <div className="bg-green-900 text-white">
+        <div className="max-w-5xl mx-auto px-4 py-16 text-center">
+          <div className="text-amber-400 text-6xl font-black tracking-tight mb-2">
+            DAM TOUR
+          </div>
+          <p className="text-green-400 text-sm">Est. 2006 &bull; 15 Players &bull; Annual Championship</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      {/* Nav cards */}
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {cards.map((card) => (
+            <Link
+              key={card.href}
+              href={card.href}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center gap-3 hover:shadow-md hover:border-green-300 transition-all"
+            >
+              <span className="text-4xl">{card.emoji}</span>
+              <span className="font-bold text-green-900 text-base">{card.title}</span>
+              <span className="text-gray-500 text-xs leading-snug">{card.desc}</span>
+            </Link>
+          ))}
         </div>
-      </main>
+
+        {/* Stats bar */}
+        <div className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div className="text-3xl font-black text-amber-500">2006</div>
+            <div className="text-xs text-gray-500 mt-1">Founded</div>
+          </div>
+          <div>
+            <div className="text-3xl font-black text-green-700">15</div>
+            <div className="text-xs text-gray-500 mt-1">Players</div>
+          </div>
+          <div>
+            <div className="text-3xl font-black text-green-700">1</div>
+            <div className="text-xs text-gray-500 mt-1">Champion</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
