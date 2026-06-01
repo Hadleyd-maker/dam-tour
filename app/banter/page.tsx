@@ -14,6 +14,12 @@ type Post = {
   post_likes: { player_id: string }[];
 };
 
+const VIDEO_EXTENSIONS = ["mp4", "mov", "webm", "m4v", "avi"];
+function isVideo(url: string) {
+  const ext = url.split(".").pop()?.split("?")[0].toLowerCase() ?? "";
+  return VIDEO_EXTENSIONS.includes(ext);
+}
+
 function timeAgo(date: string) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
   if (seconds < 60) return "just now";
@@ -148,8 +154,12 @@ export default function BanterPage() {
               />
               {imageUrl && (
                 <div className="relative mt-2 inline-block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl} alt="" className="max-h-40 rounded-xl" />
+                  {isVideo(imageUrl) ? (
+                    <video src={imageUrl} className="max-h-40 rounded-xl" controls muted playsInline />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imageUrl} alt="" className="max-h-40 rounded-xl" />
+                  )}
                   <button
                     onClick={() => setImageUrl(null)}
                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
@@ -167,9 +177,9 @@ export default function BanterPage() {
                   disabled={uploadingImage}
                   className="text-gray-400 hover:text-green-700 text-sm transition-colors"
                 >
-                  {uploadingImage ? "Uploading…" : "📷 Add photo"}
+                  {uploadingImage ? "Uploading…" : "📎 Add photo / video"}
                 </button>
-                <input ref={imageRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                <input ref={imageRef} type="file" accept="image/*,video/*" onChange={handleImageUpload} className="hidden" />
                 <button
                   onClick={handlePost}
                   disabled={posting || !content.trim()}
@@ -224,8 +234,17 @@ export default function BanterPage() {
                   </div>
                   <p className="text-gray-800 text-sm mt-1 leading-relaxed">{post.content}</p>
                   {post.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.image_url} alt="" className="mt-2 rounded-xl max-h-64 w-auto" />
+                    isVideo(post.image_url) ? (
+                      <video
+                        src={post.image_url}
+                        controls
+                        playsInline
+                        className="mt-2 rounded-xl max-h-64 w-full"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={post.image_url} alt="" className="mt-2 rounded-xl max-h-64 w-auto" />
+                    )
                   )}
                   <div className="flex items-center gap-4 mt-3">
                     <button
