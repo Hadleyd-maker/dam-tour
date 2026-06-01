@@ -23,20 +23,24 @@ function timeAgo(date: string) {
 }
 
 export default function BanterPage() {
+  // ── all state at the top ──────────────────────────────────────
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState("");
   const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageRef = useRef<HTMLInputElement>(null);
 
+  // ── data fetching ─────────────────────────────────────────────
   const loadPosts = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("posts")
       .select("*, players(nickname, avatar_url), post_likes(player_id)")
       .order("created_at", { ascending: false });
+    if (error) console.error("loadPosts error:", error.message);
     setPosts((data as Post[]) ?? []);
   };
 
@@ -57,6 +61,7 @@ export default function BanterPage() {
     init();
   }, []);
 
+  // ── handlers ──────────────────────────────────────────────────
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -69,8 +74,6 @@ export default function BanterPage() {
     }
     setUploadingImage(false);
   };
-
-  const [postError, setPostError] = useState<string | null>(null);
 
   const handlePost = async () => {
     if (!content.trim() || !currentPlayer) return;
@@ -113,6 +116,7 @@ export default function BanterPage() {
     await loadPosts();
   };
 
+  // ── render ────────────────────────────────────────────────────
   if (loading) {
     return <div className="max-w-2xl mx-auto px-4 py-10 text-center text-gray-400">Loading…</div>;
   }
@@ -122,7 +126,7 @@ export default function BanterPage() {
       <h1 className="text-3xl font-black text-green-900 mb-1">Banter</h1>
       <p className="text-gray-500 text-sm mb-8">The 19th hole. Any time, anywhere.</p>
 
-      {/* Compose */}
+      {/* Compose box */}
       {currentPlayer ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
           <div className="flex items-start gap-3">
@@ -183,7 +187,7 @@ export default function BanterPage() {
         </div>
       )}
 
-      {/* Posts feed */}
+      {/* Feed */}
       {posts.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <div className="text-4xl mb-3">🏌️</div>
@@ -201,7 +205,6 @@ export default function BanterPage() {
           return (
             <div key={post.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-start gap-3">
-                {/* Avatar */}
                 {post.players?.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={post.players.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
@@ -210,7 +213,6 @@ export default function BanterPage() {
                     {post.players?.nickname?.[0] ?? "?"}
                   </div>
                 )}
-
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-green-900 text-sm">
@@ -220,14 +222,11 @@ export default function BanterPage() {
                       {timeAgo(post.created_at)}
                     </span>
                   </div>
-
                   <p className="text-gray-800 text-sm mt-1 leading-relaxed">{post.content}</p>
-
                   {post.image_url && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={post.image_url} alt="" className="mt-2 rounded-xl max-h-64 w-auto" />
                   )}
-
                   <div className="flex items-center gap-4 mt-3">
                     <button
                       onClick={() => toggleLike(post)}
