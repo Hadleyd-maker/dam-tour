@@ -22,7 +22,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError("Incorrect email or password. Try again.");
+      setError(error.message);
       setLoading(false);
     } else {
       router.push("/");
