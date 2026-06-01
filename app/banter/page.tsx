@@ -73,7 +73,9 @@ export default function BanterPage() {
     if (!file) return;
     setUploadingImage(true);
     const filename = `${Date.now()}_${Math.random().toString(36).slice(2)}.${file.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("posts").upload(filename, file);
+    const { error } = await supabase.storage.from("posts").upload(filename, file, {
+      contentType: file.type,
+    });
     if (!error) {
       const { data } = supabase.storage.from("posts").getPublicUrl(filename);
       setImageUrl(data.publicUrl);
