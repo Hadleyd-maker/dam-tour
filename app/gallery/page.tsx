@@ -77,20 +77,32 @@ export default function GalleryPage() {
     const year = selectedYear === "all" ? 2026 : selectedYear;
     const errors: string[] = [];
 
-    await Promise.all(
-      files.map(async (file) => {
-        const ext = file.name.split(".").pop();
-        const filename = `${year}_${Date.now()}_${Math.random()
-          .toString(36)
-          .slice(2)}.${ext}`;
-        const { error } = await supabase.storage
-          .from("gallery")
-          .upload(filename, file, { contentType: file.type });
-        if (error) errors.push(`${file.name}: ${error.message}`);
-      })
-    );
+    try {
+      await Promise.all(
+        files.map(async (file) => {
+          const ext = file.name.split(".").pop();
+          const contentType = file.type || "application/octet-stream";
+          const filename = `${year}_${Date.now()}_${Math.random()
+            .toString(36)
+            .slice(2)}.${ext}`;
+          console.log("Uploading:", filename, "type:", contentType, "size:", file.size);
+          const { error } = await supabase.storage
+            .from("gallery")
+            .upload(filename, file, { contentType });
+          if (error) {
+            console.error("Upload error:", error);
+            errors.push(`${file.name}: ${error.message}`);
+          } else {
+            console.log("Upload success:", filename);
+          }
+        })
+      );
+    } catch (err) {
+      console.error("Unexpected upload error:", err);
+      errors.push("Unexpected error: " + String(err));
+    }
 
-    if (errors.length > 0) setError("Some uploads failed: " + errors.join(", "));
+    if (errors.length > 0) setError("Upload failed: " + errors.join(", "));
 
     await loadPhotos();
     setUploading(false);
