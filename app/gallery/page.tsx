@@ -3,10 +3,10 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 
-type Photo = {
-  name: string;
-  url: string;
-};
+type Photo = { name: string; url: string };
+
+// All tour years, newest first
+const TOUR_YEARS = Array.from({ length: 21 }, (_, i) => 2026 - i);
 
 export default function GalleryPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -14,10 +14,13 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Photo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | "all">(2026);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadPhotos = async () => {
     setError(null);
+    setLoading(true);
+
     const { data, error } = await supabase.storage
       .from("gallery")
       .list("", { sortBy: { column: "created_at", order: "desc" } });
@@ -47,6 +50,16 @@ export default function GalleryPage() {
     loadPhotos();
   }, []);
 
+  // Filter photos by selected year (year prefix in filename e.g. "2026_...")
+  const filteredPhotos =
+    selectedYear === "all"
+      ? photos
+      : photos.filter((p) => p.name.startsWith(`${selectedYear}_`));
+
+  // Count photos per year for the tab badges
+  const countForYear = (year: number) =>
+    photos.filter((p) => p.name.startsWith(`${year}_`)).length;
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
@@ -54,12 +67,15 @@ export default function GalleryPage() {
     setUploading(true);
     setError(null);
 
+    const year = selectedYear === "all" ? 2026 : selectedYear;
     const errors: string[] = [];
 
     await Promise.all(
       files.map(async (file) => {
         const ext = file.name.split(".").pop();
-        const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const filename = `${year}_${Date.now()}_${Math.random()
+          .toString(36)
+          .slice(2)}.${ext}`;
         const { error } = await supabase.storage
           .from("gallery")
           .upload(filename, file);
@@ -67,9 +83,7 @@ export default function GalleryPage() {
       })
     );
 
-    if (errors.length > 0) {
-      setError("Some uploads failed: " + errors.join(", "));
-    }
+    if (errors.length > 0) setError("Some uploads failed: " + errors.join(", "));
 
     await loadPhotos();
     setUploading(false);
@@ -78,21 +92,22 @@ export default function GalleryPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-1">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-black text-green-900">Gallery</h1>
         <div className="flex gap-2">
           <button
             onClick={loadPhotos}
             className="border border-gray-200 text-gray-500 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-gray-50"
           >
-            ↻ Refresh
+            ↻
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className="bg-green-800 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
           >
-            {uploading ? "Uploading…" : "📸 Upload Photos"}
+            {uploading ? "Uploading…" : "📸 Upload"}
           </button>
         </div>
         <input
@@ -105,32 +120,58 @@ export default function GalleryPage() {
         />
       </div>
 
-      <p className="text-gray-500 text-sm mb-4">
-        Photos from the fairways and the 19th hole.{" "}
-        <span className="text-gray-400">
-          ({photos.length} photo{photos.length !== 1 ? "s" : ""})
-        </span>
-      </p>
+      {/* Year tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
+        <button
+          onClick={() => setSelectedYear("all")}
+          className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+            selectedYear === "all"
+              ? "bg-green-800 text-white"
+              : "bg-white border border-gray-200 text-gray-600 hover:border-green-400"
+          }`}
+        >
+          All ({photos.length})
+        </button>
+        {TOUR_YEARS.map((year) => {
+          const count = countForYear(year);
+          return (
+            <button
+              key={year}
+              onClick={() => setSelectedYear(year)}
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                selectedYear === year
+                  ? "bg-green-800 text-white"
+                  : count > 0
+                  ? "bg-amber-50 border border-amber-300 text-amber-800 hover:border-amber-500"
+                  : "bg-white border border-gray-200 text-gray-400 hover:border-green-400"
+              }`}
+            >
+              {year} {count > 0 && `(${count})`}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Error banner */}
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
           ⚠️ {error}
         </div>
       )}
 
-      {/* Loading */}
       {loading && (
         <div className="text-center py-20 text-gray-400">Loading photos…</div>
       )}
 
-      {/* Empty state */}
-      {!loading && photos.length === 0 && !error && (
+      {!loading && filteredPhotos.length === 0 && (
         <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-16 text-center">
           <div className="text-6xl mb-4">📸</div>
-          <h2 className="text-xl font-bold text-gray-600 mb-2">No photos yet</h2>
+          <h2 className="text-xl font-bold text-gray-600 mb-2">
+            No photos for {selectedYear === "all" ? "any year" : selectedYear}
+          </h2>
           <p className="text-gray-400 text-sm mb-6">
-            Hit the Upload Photos button to add the first ones.
+            {selectedYear !== "all"
+              ? `Select ${selectedYear} in the tabs then hit Upload.`
+              : "Hit the Upload button to add the first ones."}
           </p>
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -141,10 +182,9 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* Photo grid — using plain <img> to avoid Next.js domain restrictions */}
-      {photos.length > 0 && (
+      {filteredPhotos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {photos.map((photo) => (
+          {filteredPhotos.map((photo) => (
             <button
               key={photo.name}
               onClick={() => setSelected(photo)}
