@@ -71,6 +71,17 @@ export default function GalleryPage() {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
 
+    const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+    const tooBig = files.filter(f => f.size > MAX_SIZE);
+    if (tooBig.length > 0) {
+      setError(
+        `File too large: ${tooBig.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(0)} MB)`).join(", ")}. ` +
+        `Maximum size is 50 MB. Trim or compress the video first — try the free app HandBrake or just trim it in the Photos app.`
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
     setError(null);
 
@@ -85,20 +96,13 @@ export default function GalleryPage() {
           const filename = `${year}_${Date.now()}_${Math.random()
             .toString(36)
             .slice(2)}.${ext}`;
-          console.log("Uploading:", filename, "type:", contentType, "size:", file.size);
           const { error } = await supabase.storage
             .from("gallery")
             .upload(filename, file, { contentType });
-          if (error) {
-            console.error("Upload error:", error);
-            errors.push(`${file.name}: ${error.message}`);
-          } else {
-            console.log("Upload success:", filename);
-          }
+          if (error) errors.push(`${file.name}: ${error.message}`);
         })
       );
     } catch (err) {
-      console.error("Unexpected upload error:", err);
       errors.push("Unexpected error: " + String(err));
     }
 
