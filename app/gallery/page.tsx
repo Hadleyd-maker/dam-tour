@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import Image from "next/image";
 
 type Photo = {
   name: string;
@@ -14,15 +13,17 @@ export default function GalleryPage() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Photo | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadPhotos = async () => {
+    setError(null);
     const { data, error } = await supabase.storage
       .from("gallery")
       .list("", { sortBy: { column: "created_at", order: "desc" } });
 
     if (error) {
-      console.error("Error listing photos:", error.message);
+      setError("Could not load photos: " + error.message);
       setLoading(false);
       return;
     }
@@ -51,8 +52,10 @@ export default function GalleryPage() {
     if (files.length === 0) return;
 
     setUploading(true);
+    setError(null);
 
-    // Upload all selected files in parallel
+    const errors: string[] = [];
+
     await Promise.all(
       files.map(async (file) => {
         const ext = file.name.split(".").pop();
@@ -60,14 +63,16 @@ export default function GalleryPage() {
         const { error } = await supabase.storage
           .from("gallery")
           .upload(filename, file);
-        if (error) console.error("Upload error:", error.message);
+        if (error) errors.push(`${file.name}: ${error.message}`);
       })
     );
 
+    if (errors.length > 0) {
+      setError("Some uploads failed: " + errors.join(", "));
+    }
+
     await loadPhotos();
     setUploading(false);
-
-    // Reset input
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -75,14 +80,21 @@ export default function GalleryPage() {
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-3xl font-black text-green-900">Gallery</h1>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="bg-green-800 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-        >
-          {uploading ? "Uploading…" : "📸 Upload Photos"}
-        </button>
-        {/* multiple allows selecting several at once */}
+        <div className="flex gap-2">
+          <button
+            onClick={loadPhotos}
+            className="border border-gray-200 text-gray-500 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-gray-50"
+          >
+            ↻ Refresh
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="bg-green-800 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+          >
+            {uploading ? "Uploading…" : "📸 Upload Photos"}
+          </button>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -92,18 +104,28 @@ export default function GalleryPage() {
           className="hidden"
         />
       </div>
-      <p className="text-gray-500 text-sm mb-8">
+
+      <p className="text-gray-500 text-sm mb-4">
         Photos from the fairways and the 19th hole.{" "}
-        <span className="text-gray-400">({photos.length} photo{photos.length !== 1 ? "s" : ""})</span>
+        <span className="text-gray-400">
+          ({photos.length} photo{photos.length !== 1 ? "s" : ""})
+        </span>
       </p>
 
-      {/* Loading state */}
+      {/* Error banner */}
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Loading */}
       {loading && (
         <div className="text-center py-20 text-gray-400">Loading photos…</div>
       )}
 
       {/* Empty state */}
-      {!loading && photos.length === 0 && (
+      {!loading && photos.length === 0 && !error && (
         <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-16 text-center">
           <div className="text-6xl mb-4">📸</div>
           <h2 className="text-xl font-bold text-gray-600 mb-2">No photos yet</h2>
@@ -119,7 +141,7 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* Photo grid */}
+      {/* Photo grid — using plain <img> to avoid Next.js domain restrictions */}
       {photos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {photos.map((photo) => (
@@ -128,11 +150,10 @@ export default function GalleryPage() {
               onClick={() => setSelected(photo)}
               className="aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity"
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={photo.url}
                 alt="DAM Tour photo"
-                width={300}
-                height={300}
                 className="w-full h-full object-cover"
               />
             </button>
@@ -150,11 +171,10 @@ export default function GalleryPage() {
             className="relative max-w-3xl w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={selected.url}
               alt="DAM Tour photo"
-              width={900}
-              height={700}
               className="rounded-2xl w-full h-auto object-contain max-h-[80vh]"
             />
             <button
