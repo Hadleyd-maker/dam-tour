@@ -50,18 +50,23 @@ export default function EditProfilePage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    supabase
-      .from("players")
-      .select("*")
-      .eq("id", id)
-      .single()
-      .then(({ data }) => {
-        setPlayer(data ?? {});
-        setLoading(false);
-      });
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data } = await supabase
+        .from("players")
+        .select("*")
+        .eq("id", id)
+        .single();
+      setPlayer(data ?? {});
+      // Only the owner can edit — check if logged-in user owns this player record
+      setIsOwner(!!user && !!data && data.user_id === user.id);
+      setLoading(false);
+    };
+    init();
   }, [id]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,6 +143,17 @@ export default function EditProfilePage() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-10 text-center text-gray-400">
         Loading…
+      </div>
+    );
+  }
+
+  if (!isOwner) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-10 text-center">
+        <div className="text-4xl mb-4">🚫</div>
+        <h2 className="text-xl font-black text-green-900 mb-2">Not your profile</h2>
+        <p className="text-gray-500 text-sm mb-6">You can only edit your own profile.</p>
+        <a href={`/players/${id}`} className="text-green-700 hover:underline text-sm">← Back to profile</a>
       </div>
     );
   }

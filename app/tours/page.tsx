@@ -12,7 +12,7 @@ const tours = [
       { date: "Wed 28 May", event: "Steenberg Golf Club", detail: "Round 1", icon: "⛳" },
       { date: "Thu 29 May", event: "Clovelly Country Club", detail: "Round 2", icon: "⛳" },
       { date: "Fri 30 May", event: "De Zalze Golf Club", detail: "Round 3", icon: "⛳" },
-      { date: "Sat 31 May", event: "Monument Golf Club", detail: "Round 4 — Final", icon: "🏆" },
+      { date: "Sat 31 May", event: "Metropolitan Golf Course", detail: "Round 4 — Final", icon: "🏆" },
     ],
   },
   {

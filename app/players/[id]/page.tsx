@@ -42,17 +42,21 @@ export default function PlayerProfilePage() {
   const { id } = useParams<{ id: string }>();
   const [player, setPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    supabase
-      .from("players")
-      .select("*")
-      .eq("id", id)
-      .single()
-      .then(({ data }) => {
-        setPlayer(data);
-        setLoading(false);
-      });
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data } = await supabase
+        .from("players")
+        .select("*")
+        .eq("id", id)
+        .single();
+      setPlayer(data);
+      setIsOwner(!!user && !!data && data.user_id === user.id);
+      setLoading(false);
+    };
+    init();
   }, [id]);
 
   if (loading) {
@@ -123,15 +127,17 @@ export default function PlayerProfilePage() {
         </div>
       </div>
 
-      {/* Edit button */}
-      <div className="flex justify-end mb-6">
-        <Link
-          href={`/players/${player.id}/edit`}
-          className="bg-amber-400 hover:bg-amber-300 text-green-900 font-bold text-sm px-5 py-2 rounded-xl transition-colors"
-        >
-          ✏️ Edit Profile
-        </Link>
-      </div>
+      {/* Edit button — only shown to the profile owner */}
+      {isOwner && (
+        <div className="flex justify-end mb-6">
+          <Link
+            href={`/players/${player.id}/edit`}
+            className="bg-amber-400 hover:bg-amber-300 text-green-900 font-bold text-sm px-5 py-2 rounded-xl transition-colors"
+          >
+            ✏️ Edit Profile
+          </Link>
+        </div>
+      )}
 
       {/* Q&A sections */}
       {SECTIONS.map((section) => {
@@ -169,12 +175,14 @@ export default function PlayerProfilePage() {
           <p className="text-gray-500 text-sm">
             {player.nickname} hasn&apos;t filled in their profile yet.
           </p>
-          <Link
-            href={`/players/${player.id}/edit`}
-            className="mt-4 inline-block bg-green-800 text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-green-700"
-          >
-            Fill it in
-          </Link>
+          {isOwner && (
+            <Link
+              href={`/players/${player.id}/edit`}
+              className="mt-4 inline-block bg-green-800 text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-green-700"
+            >
+              Fill it in
+            </Link>
+          )}
         </div>
       )}
     </div>
