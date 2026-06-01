@@ -85,7 +85,7 @@ export default function GalleryPage() {
           .slice(2)}.${ext}`;
         const { error } = await supabase.storage
           .from("gallery")
-          .upload(filename, file);
+          .upload(filename, file, { contentType: file.type });
         if (error) errors.push(`${file.name}: ${error.message}`);
       })
     );
