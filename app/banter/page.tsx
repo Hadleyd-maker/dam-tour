@@ -70,17 +70,24 @@ export default function BanterPage() {
     setUploadingImage(false);
   };
 
+  const [postError, setPostError] = useState<string | null>(null);
+
   const handlePost = async () => {
     if (!content.trim() || !currentPlayer) return;
     setPosting(true);
-    await supabase.from("posts").insert({
+    setPostError(null);
+    const { error } = await supabase.from("posts").insert({
       player_id: currentPlayer.id,
       content: content.trim(),
       image_url: imageUrl,
     });
-    setContent("");
-    setImageUrl(null);
-    await loadPosts();
+    if (error) {
+      setPostError("Post failed: " + error.message);
+    } else {
+      setContent("");
+      setImageUrl(null);
+      await loadPosts();
+    }
     setPosting(false);
   };
 
@@ -143,6 +150,11 @@ export default function BanterPage() {
                     onClick={() => setImageUrl(null)}
                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
                   >✕</button>
+                </div>
+              )}
+              {postError && (
+                <div className="mt-2 text-red-600 text-xs bg-red-50 rounded-lg px-3 py-2">
+                  ⚠️ {postError}
                 </div>
               )}
               <div className="flex items-center justify-between mt-2">
