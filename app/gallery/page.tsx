@@ -22,13 +22,13 @@ export default function GalleryPage() {
       .list("", { sortBy: { column: "created_at", order: "desc" } });
 
     if (error) {
-      console.error("Error loading photos:", error.message);
+      console.error("Error listing photos:", error.message);
       setLoading(false);
       return;
     }
 
     const files = (data ?? []).filter(
-      (f) => f.name !== ".emptyFolderPlaceholder"
+      (f) => f.name !== ".emptyFolderPlaceholder" && f.name !== ""
     );
 
     const withUrls: Photo[] = files.map((f) => {
@@ -47,27 +47,27 @@ export default function GalleryPage() {
   }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
 
     setUploading(true);
 
-    // Give each file a unique name using timestamp
-    const ext = file.name.split(".").pop();
-    const filename = `${Date.now()}.${ext}`;
+    // Upload all selected files in parallel
+    await Promise.all(
+      files.map(async (file) => {
+        const ext = file.name.split(".").pop();
+        const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabase.storage
+          .from("gallery")
+          .upload(filename, file);
+        if (error) console.error("Upload error:", error.message);
+      })
+    );
 
-    const { error } = await supabase.storage
-      .from("gallery")
-      .upload(filename, file);
-
-    if (error) {
-      alert("Upload failed: " + error.message);
-    } else {
-      await loadPhotos();
-    }
-
+    await loadPhotos();
     setUploading(false);
-    // Reset input so the same file can be re-uploaded if needed
+
+    // Reset input
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -80,18 +80,21 @@ export default function GalleryPage() {
           disabled={uploading}
           className="bg-green-800 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
         >
-          {uploading ? "Uploading…" : "📸 Upload Photo"}
+          {uploading ? "Uploading…" : "📸 Upload Photos"}
         </button>
+        {/* multiple allows selecting several at once */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           onChange={handleUpload}
           className="hidden"
         />
       </div>
       <p className="text-gray-500 text-sm mb-8">
-        Photos from the fairways and the 19th hole.
+        Photos from the fairways and the 19th hole.{" "}
+        <span className="text-gray-400">({photos.length} photo{photos.length !== 1 ? "s" : ""})</span>
       </p>
 
       {/* Loading state */}
@@ -103,17 +106,15 @@ export default function GalleryPage() {
       {!loading && photos.length === 0 && (
         <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-16 text-center">
           <div className="text-6xl mb-4">📸</div>
-          <h2 className="text-xl font-bold text-gray-600 mb-2">
-            No photos yet
-          </h2>
+          <h2 className="text-xl font-bold text-gray-600 mb-2">No photos yet</h2>
           <p className="text-gray-400 text-sm mb-6">
-            Hit the Upload Photo button to add the first one.
+            Hit the Upload Photos button to add the first ones.
           </p>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="bg-green-800 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl"
           >
-            📸 Upload Photo
+            📸 Upload Photos
           </button>
         </div>
       )}
@@ -145,7 +146,10 @@ export default function GalleryPage() {
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
           onClick={() => setSelected(null)}
         >
-          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-3xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Image
               src={selected.url}
               alt="DAM Tour photo"
