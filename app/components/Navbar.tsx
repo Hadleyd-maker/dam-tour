@@ -12,6 +12,7 @@ const links = [
   { href: "/champions", label: "Champions" },
   { href: "/tours", label: "Tours" },
   { href: "/gallery", label: "Gallery" },
+  { href: "/banter", label: "Banter 💬" },
 ];
 
 export default function Navbar() {

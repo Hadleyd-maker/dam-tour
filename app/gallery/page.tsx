@@ -5,6 +5,13 @@ import { supabase } from "@/lib/supabase";
 
 type Photo = { name: string; url: string };
 
+const VIDEO_EXTENSIONS = ["mp4", "mov", "webm", "m4v", "avi"];
+
+function isVideo(name: string) {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  return VIDEO_EXTENSIONS.includes(ext);
+}
+
 // All tour years, newest first
 const TOUR_YEARS = Array.from({ length: 21 }, (_, i) => 2026 - i);
 
@@ -113,7 +120,7 @@ export default function GalleryPage() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           multiple
           onChange={handleUpload}
           className="hidden"
@@ -188,14 +195,30 @@ export default function GalleryPage() {
             <button
               key={photo.name}
               onClick={() => setSelected(photo)}
-              className="aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity"
+              className="aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity relative"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.url}
-                alt="DAM Tour photo"
-                className="w-full h-full object-cover"
-              />
+              {isVideo(photo.name) ? (
+                <>
+                  <video
+                    src={photo.url}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-black/50 rounded-full w-10 h-10 flex items-center justify-center">
+                      <span className="text-white text-lg">▶</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photo.url}
+                  alt="DAM Tour photo"
+                  className="w-full h-full object-cover"
+                />
+              )}
             </button>
           ))}
         </div>
@@ -211,12 +234,21 @@ export default function GalleryPage() {
             className="relative max-w-3xl w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={selected.url}
-              alt="DAM Tour photo"
-              className="rounded-2xl w-full h-auto object-contain max-h-[80vh]"
-            />
+            {isVideo(selected.name) ? (
+              <video
+                src={selected.url}
+                controls
+                autoPlay
+                className="rounded-2xl w-full h-auto max-h-[80vh]"
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={selected.url}
+                alt="DAM Tour photo"
+                className="rounded-2xl w-full h-auto object-contain max-h-[80vh]"
+              />
+            )}
             <button
               onClick={() => setSelected(null)}
               className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-9 h-9 flex items-center justify-center text-lg hover:bg-black/70"
