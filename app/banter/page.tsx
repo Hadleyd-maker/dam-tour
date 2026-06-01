@@ -72,15 +72,21 @@ export default function BanterPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingImage(true);
-    const filename = `${Date.now()}_${Math.random().toString(36).slice(2)}.${file.name.split(".").pop()}`;
+    setPostError(null);
+    const ext = file.name.split(".").pop();
+    const filename = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage.from("posts").upload(filename, file, {
       contentType: file.type,
+      upsert: false,
     });
-    if (!error) {
+    if (error) {
+      setPostError("Upload failed: " + error.message);
+    } else {
       const { data } = supabase.storage.from("posts").getPublicUrl(filename);
       setImageUrl(data.publicUrl);
     }
     setUploadingImage(false);
+    if (imageRef.current) imageRef.current.value = "";
   };
 
   const handlePost = async () => {
