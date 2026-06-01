@@ -39,10 +39,8 @@ export default function Navbar() {
     <nav className="bg-green-900 text-white shadow-lg">
       <div className="max-w-5xl mx-auto px-4 flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-amber-400 font-black text-2xl tracking-tight">DAM</span>
-          <span className="text-white font-semibold text-sm leading-tight hidden sm:block">
-            DAM Tour
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="DAM Tour" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop links */}

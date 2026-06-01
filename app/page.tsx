@@ -32,10 +32,9 @@ export default function Home() {
     <div>
       {/* Hero */}
       <div className="bg-green-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-          <div className="text-amber-400 text-6xl font-black tracking-tight mb-2">
-            DAM TOUR
-          </div>
+        <div className="max-w-5xl mx-auto px-4 py-12 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="DAM Tour" className="h-40 w-auto mx-auto mb-4 drop-shadow-xl" />
           <p className="text-green-400 text-sm">Est. 2006 &bull; 15 Players &bull; Annual Championship</p>
         </div>
       </div>
