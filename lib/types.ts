@@ -1,0 +1,28 @@
+export type Player = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  nickname: string;
+  avatar_url: string | null;
+  home_course: string | null;
+  handicap: number | null;
+  on_tour_since: number | null;
+  best_round: string | null;
+  favourite_course: string | null;
+  memorable_moment: string | null;
+  strongest_part: string | null;
+  biggest_weakness: string | null;
+  nickname_story: string | null;
+  unknown_fact: string | null;
+  best_excuse: string | null;
+  nineteenth_drink: string | null;
+  embarrassing_moment: string | null;
+  self_rating: string | null;
+  sandbagger: string | null;
+  putt_reaction: string | null;
+  golf_club_type: string | null;
+  worst_partner: string | null;
+  winning_odds: string | null;
+  useless_club: string | null;
+  created_at: string;
+};
