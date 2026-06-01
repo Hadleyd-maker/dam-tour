@@ -38,7 +38,7 @@ export default function BanterPage() {
   const loadPosts = async () => {
     const { data, error } = await supabase
       .from("posts")
-      .select("*, players(nickname, avatar_url), post_likes(player_id)")
+      .select("*, players!posts_player_id_fkey(nickname, avatar_url), post_likes(player_id)")
       .order("created_at", { ascending: false });
     if (error) console.error("loadPosts error:", error.message);
     setPosts((data as Post[]) ?? []);
